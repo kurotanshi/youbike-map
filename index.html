@@ -45,6 +45,7 @@ function initMap() {
     pos = pos || map.getCenter();
 
     if( directionsDisplay ){ directionsDisplay.setMap(null); }
+    if( infoWindow ) { infoWindow.close(); }
 
     dataMap.setMap(null);
     dataMap = new google.maps.Data();
@@ -157,19 +158,19 @@ function initMap() {
     draw(ubikePin, c, e.latLng);
   });
 
-  // navigator.geolocation.getCurrentPosition((position) => {
-  //   var lat  = position.coords.latitude;
-  //   var lng = position.coords.longitude;
+  navigator.geolocation.getCurrentPosition((position) => {
+    var lat  = position.coords.latitude;
+    var lng = position.coords.longitude;
 
-  //   var center = new google.maps.LatLng(lat, lng);
-  //   var pt = turf.point([lng, lat]);
-  //   var c = turf.buffer(pt, 1, "kilometers");
+    var center = new google.maps.LatLng(lat, lng);
+    var pt = turf.point([lng, lat]);
+    var c = turf.buffer(pt, 1, "kilometers");
 
-  //   marker.setPosition(center);
-  //   map.panTo( center );
+    marker.setPosition(center);
+    map.panTo( center );
 
-  //   draw(ubikePin, c, center);
-  // });
+    draw(ubikePin, c, center);
+  });
 
   // opendata
   // data source: http://data.taipei/opendata/datalist/datasetMeta/preview?id=8ef1626a-892a-4218-8344-f7ac46e1aa48&rid=9c6a96d6-353c-41c0-84cc-d181988304f2
