@@ -25,14 +25,17 @@ var defaultPosition = { lat: 25.0485678, lng: 121.5173999 };
 var turfPoint = turf.point([defaultPosition.lng, defaultPosition.lat]);
 var circle = turf.buffer(turfPoint, 1, "kilometers");
 var ubikePin = [];
+var directionsService;
+var directionsDisplay;
 
 function initMap() {
 
   // 地圖初始設定
   var mapOptions = {
-      center: new google.maps.LatLng( defaultPosition.lat, defaultPosition.lng ),
-      zoom: 15,
-      mapTypeId: google.maps.MapTypeId.ROADMAP
+    center: new google.maps.LatLng( defaultPosition.lat, defaultPosition.lng ),
+    zoom: 15,
+    maxZoom: 16,
+    mapTypeId: google.maps.MapTypeId.ROADMAP
   };
 
   var mapElement = document.getElementById("mapDiv");
@@ -40,6 +43,8 @@ function initMap() {
   var draw = function(ubikePin, newCircle, pos){
     newCircle = newCircle || circle;
     pos = pos || map.getCenter();
+
+    if( directionsDisplay ){ directionsDisplay.setMap(null); }
 
     dataMap.setMap(null);
     dataMap = new google.maps.Data();
@@ -51,6 +56,28 @@ function initMap() {
 
       if( e.feature.getProperty('id') ){
         var anchor = new google.maps.MVCObject();
+
+        var markerPos = new google.maps.LatLng(marker.position.lat(), marker.position.lng());
+        var uBikePos = new google.maps.LatLng(e.latLng.lat(), e.latLng.lng());
+
+        if( directionsDisplay ){ directionsDisplay.setMap(null); }
+
+        directionsService = new google.maps.DirectionsService();
+        directionsDisplay = new google.maps.DirectionsRenderer({ map: map });
+
+        var request = {
+          destination: uBikePos,
+          origin: markerPos,
+          travelMode: 'WALKING'
+        };
+
+        directionsService.route(request, function(response, status) {
+          if (status == 'OK') {
+            // Display the route on the map.
+            directionsDisplay.setDirections(response);
+          }
+        });
+
         anchor.set("position", e.latLng);
 
         var str = [],
@@ -103,7 +130,7 @@ function initMap() {
               available: ubikePin[i].bemp,
               update: (function(d){
                 var s = d.split(/(\d{4})(\d{2})(\d{2})(\d{2})(\d{2})/);
-                var t = new Date(s[1],s[2],s[3],s[4],s[5],s[6]);
+                var t = new Date(s[1],(s[2] - 1),s[3],s[4],s[5],s[6]);
                 return t.toLocaleDateString() + ' ' + t.toLocaleTimeString();
               })( ubikePin[i].mday )
             });
@@ -130,21 +157,22 @@ function initMap() {
     draw(ubikePin, c, e.latLng);
   });
 
-  navigator.geolocation.getCurrentPosition((position) => {
-    var lat  = position.coords.latitude;
-    var lng = position.coords.longitude;
+  // navigator.geolocation.getCurrentPosition((position) => {
+  //   var lat  = position.coords.latitude;
+  //   var lng = position.coords.longitude;
 
-    var center = new google.maps.LatLng(lat, lng);
-    var pt = turf.point([lng, lat]);
-    var c = turf.buffer(pt, 1, "kilometers");
+  //   var center = new google.maps.LatLng(lat, lng);
+  //   var pt = turf.point([lng, lat]);
+  //   var c = turf.buffer(pt, 1, "kilometers");
 
-    marker.setPosition(center);
-    map.panTo( center );
+  //   marker.setPosition(center);
+  //   map.panTo( center );
 
-    draw(ubikePin, c, center);
-  });
+  //   draw(ubikePin, c, center);
+  // });
 
   // opendata
+  // data source: http://data.taipei/opendata/datalist/datasetMeta/preview?id=8ef1626a-892a-4218-8344-f7ac46e1aa48&rid=9c6a96d6-353c-41c0-84cc-d181988304f2
   $.get('https://tcgbusfs.blob.core.windows.net/blobyoubike/YouBikeTP.gz', function(data){
     data = JSON.parse( data );
     ubikePin = Object.keys(data.retVal).map(key => data.retVal[key]);
