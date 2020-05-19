@@ -5,13 +5,18 @@
   <title>Youbike 租借站即時資訊圖</title>
   <style>
     html, body{ margin: 0; padding: 0; }
-    #mapDiv { width: 100%; height: 680px; margin: 0 auto; }
+    #mapDiv {
+      position: absolute;
+      top: 0; left: 0;
+      width: 100%;
+      height: 100%;
+    }
     .map-box{ font-size: 14px; margin-bottom: 3px; }
   </style>
 
   <script src="./js/jquery-1.11.3.min.js"></script>
   <script src="./js/turf.min.js"></script>
-  <script src="//maps.googleapis.com/maps/api/js?key=AIzaSyBxKtiOh3lYNzXBI6jjjC_oOGaqF1Z6Uy0&libraries=drawing"></script>
+  <script src="//maps.googleapis.com/maps/api/js?key=AIzaSyAGsYap07JHxJ4tiv7ghALQIEwrjozqAiA&libraries=drawing"></script>
 </head>
 
 <body onload="initMap()">
@@ -123,8 +128,8 @@ function initMap() {
 
         pt = turf.point([parseFloat(ubikePin[i].lng), parseFloat(ubikePin[i].lat)],
             {
-                id: ubikePin[i].sno,
-               sna: ubikePin[i].sna,
+              id:   ubikePin[i].sno,
+              sna:  ubikePin[i].sna,
               addr: ubikePin[i].ar,
               mday: ubikePin[i].mday,
               total: ubikePin[i].tot,
@@ -177,7 +182,6 @@ function initMap() {
   $.get('https://tcgbusfs.blob.core.windows.net/blobyoubike/YouBikeTP.gz', function(data){
     data = JSON.parse( data );
     ubikePin = Object.keys(data.retVal).map(key => data.retVal[key]);
-
     draw( ubikePin );
   });
 }
